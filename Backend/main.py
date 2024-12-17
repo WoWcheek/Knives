@@ -1,3 +1,4 @@
+from math import ceil
 from enum import Enum
 from uuid import uuid4
 from typing import List, Optional
@@ -6,8 +7,9 @@ from pydantic import BaseModel, Field, validator
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi import FastAPI, HTTPException, Depends, APIRouter, Request
 from sqlalchemy import create_engine, Column, Integer, String, Text, Float
+from fastapi import FastAPI, HTTPException, Depends, APIRouter, Request, Query
+
 
 DATABASE_URL = "sqlite:///./shop.db"
 
@@ -82,6 +84,13 @@ class KnifeResponse(BaseModel):
         from_attributes = True
 
 
+class PaginatedKnivesResponse(BaseModel):
+    knives: List[KnifeResponse]
+    totalCount: int
+    totalPages: int
+    currentPage: int
+
+
 def get_db():
     db = SessionLocal()
     try:
@@ -112,12 +121,24 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
 
 knives_router = APIRouter(prefix="/knives", tags=["Knives"])
 
-@knives_router.get("/", response_model=List[KnifeResponse])
-def get_knives(db: Session = Depends(get_db)):
-    knives = db.query(KnifeDB).all()
+
+@knives_router.get("/", response_model=PaginatedKnivesResponse)
+def get_knives(
+    pageNumber: int = Query(1, alias="pageNumber", ge=1),
+    pageSize: int = Query(12, alias="pageSize", ge=1),
+    db: Session = Depends(get_db)
+):
+    total_count = db.query(KnifeDB).count()
+    knives = db.query(KnifeDB).offset((pageNumber - 1) * pageSize).limit(pageSize).all()
     for k in knives:
         k.images = k.images.split(",")
-    return knives
+        
+    return {
+        "knives": knives,
+        "totalCount": total_count,
+        "totalPages": ceil(total_count / pageSize),
+        "currentPage": pageNumber
+    }
 
 
 @knives_router.get("/{knife_id}", response_model=KnifeResponse)
