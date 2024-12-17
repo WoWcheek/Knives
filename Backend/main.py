@@ -126,10 +126,11 @@ knives_router = APIRouter(prefix="/knives", tags=["Knives"])
 def get_knives(
     pageNumber: int = Query(1, alias="pageNumber", ge=1),
     pageSize: int = Query(12, alias="pageSize", ge=1),
+    load_all: bool = Query(True, alias="loadAll"),
     db: Session = Depends(get_db)
 ):
     total_count = db.query(KnifeDB).count()
-    knives = db.query(KnifeDB).offset((pageNumber - 1) * pageSize).limit(pageSize).all()
+    knives = db.query(KnifeDB).offset((pageNumber - 1) * pageSize).limit(total_count if load_all else pageSize).all()
     for k in knives:
         k.images = k.images.split(",")
         
