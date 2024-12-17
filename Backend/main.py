@@ -1,3 +1,4 @@
+from enum import Enum
 from uuid import uuid4
 from typing import List, Optional
 from fastapi.responses import JSONResponse
@@ -15,11 +16,27 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
+class HandleMaterial(str, Enum):
+    wood = "wood"
+    plastic = "plastic"
+    metal = "metal"
+    rubber = "rubber"
+    carbon_fiber = "carbon_fiber"
+
+class SteelMaterial(str, Enum):
+    stainless_steel = "stainless_steel"
+    damascus = "damascus"
+    carbon_steel = "carbon_steel"
+    titanium = "titanium"
+    ceramic = "ceramic"
+
+
 class KnifeDB(Base):
     __tablename__ = "knives"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
+    price = Column(Float, nullable=False)
     brand = Column(String, nullable=False)
     blade_length = Column(Float, nullable=False)
     weight = Column(Float, nullable=False)
@@ -34,11 +51,12 @@ Base.metadata.create_all(bind=engine)
 class KnifeCreateRequest(BaseModel):
     name: str
     description: Optional[str] = None
+    price: float = Field(..., gt=0)
     brand: str
-    blade_length: float
-    weight: float
-    handle_material: str
-    steel_type: str
+    blade_length: float = Field(..., gt=0)
+    weight: float = Field(..., gt=0)
+    handle_material: HandleMaterial
+    steel_type: SteelMaterial
     images: List[str] = Field(..., min_items=1, max_items=3)
 
     @validator("images", each_item=True)
@@ -52,6 +70,7 @@ class KnifeResponse(BaseModel):
     id: int
     name: str
     description: Optional[str]
+    price: float
     brand: str
     blade_length: float
     weight: float
