@@ -1,0 +1,46 @@
+body {
+    margin: 0;
+    font-family: 'Nunito Sans', sans-serif;
+    background-color: #121824;
+  }
+  
+  * {
+    box-sizing: border-box;
+    font-family: 'Nunito Sans', sans-serif;
+  }
+  
+  code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+      monospace;
+  }
+  
+  a {
+    text-decoration: none;
+    color: white;
+  }
+  
+  ::-webkit-scrollbar {
+    width: 5px;
+    background-color: #202225;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background-color: #5865f2;
+  }
+  
+  ::-webkit-scrollbar-track {
+    border-radius: 10px;
+    background-color: #202225;
+  }
+  
+  ::selection {
+    background: #5865f2;
+    color: #fff
+  }
+  
+  ::-moz-selection {
+    background: #5865f2;
+    color: #fff
+  }
+  

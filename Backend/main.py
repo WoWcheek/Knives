@@ -10,6 +10,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy import create_engine, Column, Integer, String, Text, Float
 from fastapi import FastAPI, HTTPException, Depends, APIRouter, Request, Query
 
+import uvicorn
+
 
 DATABASE_URL = "sqlite:///./shop.db"
 
@@ -101,6 +103,25 @@ def get_db():
 
 app = FastAPI()
 
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    if request.url.path.startswith(("/authorization", "/docs", "/openapi.json")) or request.method == 'GET':
+        return await call_next(request)
+    authorization = request.headers.get("Authorization")
+    if not authorization:
+        return JSONResponse(content={"detail": "Authorization header missing"}, status_code=401)
+    
+    parts = authorization.split(" ")
+    token = parts[1] if len(parts) > 1 else ""
+
+    db = SessionLocal()
+    user = db.query(UserDB).filter(UserDB.token == token).first()
+    if not user:
+        return JSONResponse(content={"detail": "Invalid or expired token"}, status_code=401)
+    response = await call_next(request)
+    db.close()
+    return response
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -108,6 +129,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
 
 security = HTTPBearer()
 
@@ -237,25 +260,10 @@ def sign_in(user_request: UserRequest, db: Session = Depends(get_db)):
     return user
 
 
-@app.middleware("http")
-async def auth_middleware(request: Request, call_next):
-    if request.url.path.startswith(("/authorization", "/docs", "/openapi.json")) or request.method == 'GET':
-        return await call_next(request)
-    authorization = request.headers.get("Authorization")
-    if not authorization:
-        return JSONResponse(content={"detail": "Authorization header missing"}, status_code=401)
-    
-    parts = authorization.split(" ")
-    token = parts[1] if len(parts) > 1 else ""
 
-    db = SessionLocal()
-    user = db.query(UserDB).filter(UserDB.token == token).first()
-    if not user:
-        return JSONResponse(content={"detail": "Invalid or expired token"}, status_code=401)
-    response = await call_next(request)
-    db.close()
-    return response
 
 
 app.include_router(auth_router)
 app.include_router(knives_router)
+
+uvicorn.run(app, host='0.0.0.0')
