@@ -1,10 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import config from "../../config";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import {
   PageContainer,
-  HeaderContainer,
-  Title,
   SearchContainer,
   SearchInput,
   KnivesGrid,
@@ -14,26 +13,27 @@ import {
   KnifePrice,
   Pagination,
   PageButton,
-  AuthButton,
   KnifeDescription,
 } from "./IndexPage.styled";
+
+import Header from "../Global/Header";
 
 const IndexPage = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [knives, setKnives] = useState([]);
-  // const [totalKnives, setTotalKnives] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  const itemsPerPage = 6; // Number of items per page
+
+  const navigate = useNavigate(); // для редиректа
 
   useEffect(() => {
     const fetchKnives = async () => {
       setLoading(true);
       try {
         const response = await axios.get(
-          `${config.backendUrl}/knives?page=${currentPage}&limit=${itemsPerPage}`,
+          `${config.backendUrl}/knives?pageNumber=${currentPage}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -52,14 +52,13 @@ const IndexPage = () => {
     fetchKnives();
   }, [currentPage, search]); // Trigger when currentPage or search changes
 
+  const handleCardClick = (id) => {
+    navigate(`/knife/${id}`); // Редирект на страницу ножа
+  };
+
   return (
     <PageContainer>
-      <HeaderContainer>
-        <Title>Магазин ножів</Title>
-        <AuthButton>
-          {localStorage.getItem("token") ? "Перейти до адмін панелі" : "Увійти"}
-        </AuthButton>
-      </HeaderContainer>
+      <Header />
 
       <SearchContainer>
         <SearchInput
@@ -75,8 +74,11 @@ const IndexPage = () => {
       ) : (
         <KnivesGrid>
           {knives.map((knife) => (
-            <KnifeCard key={knife.id}>
-              <KnifeImage src={`data:image/png;base64,${knife.images[1]}`} alt={knife.name} />
+            <KnifeCard key={knife.id} onClick={() => handleCardClick(knife.id)}>
+              <KnifeImage
+                src={`data:image/png;base64,${knife.images[0]}`}
+                alt={knife.name}
+              />
               <KnifeTitle>{knife.name}</KnifeTitle>
               <KnifePrice>{knife.price} UAH</KnifePrice>
               <KnifeDescription>{knife.description}</KnifeDescription>
@@ -90,7 +92,7 @@ const IndexPage = () => {
           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
           disabled={currentPage === 1}
         >
-          Prev
+          Назад
         </PageButton>
 
         <span style={{ marginTop: "6px" }}>
@@ -101,7 +103,7 @@ const IndexPage = () => {
           onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
           disabled={currentPage === totalPages}
         >
-          Next
+          Вперед
         </PageButton>
       </Pagination>
     </PageContainer>

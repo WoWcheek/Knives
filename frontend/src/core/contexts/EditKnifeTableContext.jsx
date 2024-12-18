@@ -30,13 +30,13 @@ export const EditKnifeTableProvider = ({ children }) => {
   const loadKnifeData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${config.backendUrl}/knives/`, {
+      const response = await axios.get(`${config.backendUrl}/knives?loadAll=true`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
       setEditKnifeTable(response.data.knives);
-      setTotalKnives(response.data.length);
+      setTotalKnives(response.data.knives.length);
     } catch (error) {
       // Handle error (optional)
       // MessageError('Failed to load knife data');
@@ -46,10 +46,10 @@ export const EditKnifeTableProvider = ({ children }) => {
   };
 
 
-  const paginateKnifeData = async () => {
+  const paginateKnifeData = async (page) => {
     setLoading(true);
     try {
-      const response = await axios.get(`${config.backendUrl}/knives/`, {
+      const response = await axios.get(`${config.backendUrl}/knives?page=${page}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
@@ -95,11 +95,11 @@ export const EditKnifeTableProvider = ({ children }) => {
   };
 
   // Edit knife data
-  const editKnife = async (id) => {
+  const editKnife = async (id, updatedImages) => {
     try {
       await axios.put(
         `${config.backendUrl}/knives/${id}`,
-        { name, price, description, brand, blade_length: bladeLength, weight, handle_material: handleMaterial, steel_type: steelType, images },
+        { name, price, description, brand, blade_length: bladeLength, weight, handle_material: handleMaterial, steel_type: steelType, images: updatedImages },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -133,6 +133,7 @@ export const EditKnifeTableProvider = ({ children }) => {
     setSelectedKnifeId(knife.id);
     setName(knife.name);
     setDescription(knife.description);
+    setPrice(knife.price);
     setBrand(knife.brand);
     setBladeLength(knife.blade_length);
     setWeight(knife.weight);

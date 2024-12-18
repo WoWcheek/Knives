@@ -1,3 +1,5 @@
+import { useContext } from "react";
+
 import {
   Sidebar,
   SidebarNav,
@@ -11,22 +13,26 @@ import {
 
 import KnifeTable from "./Tables/KnifeTable";
 
-import { DealProvider } from "../../core/contexts/DealContext";
-import { EditKnifeTableProvider } from "../../core/contexts/EditKnifeTableContext";
+import { EditKnifeTableProvider, EditKnifeTableContext } from "../../core/contexts/EditKnifeTableContext";
 
 const AdminPanelConPage = () => {
-  // const { totalClients } = useContext(EditKnifeTableContext);
-  // const { totalDeals, totalAmount } = useContext(DealContext);
-  const isRegistered = true;
+  const { totalKnives } = useContext(EditKnifeTableContext);
+
+  if (!localStorage.getItem("token")) {
+    return window.location.href = '/'
+  }
   
   return (
     <div style={{ display: "flex" }}>
       <Sidebar>
         <SidebarHeader>Магазин ножів</SidebarHeader>
         <SidebarNav>
-            <SidebarLink href="knives">Список ножів</SidebarLink>
-            {isRegistered && <SidebarLink href="knives">Адмін панель</SidebarLink>}
-            <SidebarLink href="login">Логін</SidebarLink>
+            <SidebarLink href="/">Повернутися на головну</SidebarLink>
+            <SidebarLink href="/login">Логін/реєстрація</SidebarLink>
+            <SidebarLink onClick={() => {
+              localStorage.removeItem("token");
+              window.location.reload()
+            }}>Вихід з акаунту</SidebarLink>
         </SidebarNav>
     </Sidebar>
 
@@ -40,7 +46,7 @@ const AdminPanelConPage = () => {
           <div>
             <AnalyticsCard>
               <h3>К-сть ножів</h3>
-              <p>0</p>
+              <p>{totalKnives}</p>
             </AnalyticsCard>
           </div>
         </AnalyticsSection>
@@ -53,9 +59,7 @@ const AdminPanelConPage = () => {
 const AdminPanelPage = () => {
   return (
     <EditKnifeTableProvider>
-      <DealProvider>
-        <AdminPanelConPage/>
-      </DealProvider>
+    <AdminPanelConPage/>
     </EditKnifeTableProvider>
   )
 }

@@ -62,7 +62,8 @@ const AddKnifeModal = ({ closeModal }) => {
       // Видаляємо префікс 'data:image/jpeg;base64,' з кожного зображення
       const updatedImages = imageBase64List.map((base64Data) => {
         const base64String = base64Data.split(',')[1];  // Strip the prefix
-        return `data:image/jpeg;base64,${base64String}`;  // Prepend the prefix back
+        // return `data:image/jpeg;base64,${base64String}`;
+        return `image:${base64String}`; // Prepend the prefix back
       });
   
       setImages((prevImages) => {

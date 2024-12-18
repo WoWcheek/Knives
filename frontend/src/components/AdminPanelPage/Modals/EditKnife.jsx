@@ -9,7 +9,7 @@ import {
   SubmitButton,
   DeleteButton,
   ModalInput,
-  ModalSelect
+  ModalSelect,
 } from './ModalStyles.styled';
 
 import { EditKnifeTableContext } from '../../../core/contexts/EditKnifeTableContext';
@@ -50,9 +50,30 @@ const EditKnifeModal = ({ close }) => {
   };
 
   const handleSubmit = async () => {
-    if (selectedKnifeId) {
-      editKnife(selectedKnifeId);
-      close();
+    const imageBase64Promises = imageFiles.map((file) =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      })
+    );
+  
+    try {
+      const imageBase64List = await Promise.all(imageBase64Promises);
+      const updatedImages = imageBase64List.map((base64Data) => {
+        const base64String = base64Data.split(',')[1];  // Strip the prefix
+        // return `data:image/jpeg;base64,${base64String}`;
+        return `image:${base64String}`; // Prepend the prefix back
+      });
+      
+      // Безпосередньо використовуємо updatedImages
+      if (selectedKnifeId) {
+        editKnife(selectedKnifeId, updatedImages); // Передаємо новий список у функцію
+        close();
+      }
+    } catch (error) {
+      console.error('Error converting images to base64', error);
     }
   };
 
@@ -163,7 +184,7 @@ const EditKnifeModal = ({ close }) => {
                 multiple
                 onChange={handleImageUpload}
               />
-              <p>Максимум 10 зображень</p>
+              <p>Максимум 3 зображення</p>
               <div>
                 {imageFiles.map((file, index) => (
                   <p key={index}>{file.name}</p>
@@ -171,8 +192,7 @@ const EditKnifeModal = ({ close }) => {
               </div>
             </ModalBlock>
           </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+          <div style={{ display: 'flex', gap: '10px' }}>
             <SubmitButton onClick={handleSubmit}>Зберегти</SubmitButton>
             <DeleteButton onClick={handleDelete}>Видалити</DeleteButton>
           </div>

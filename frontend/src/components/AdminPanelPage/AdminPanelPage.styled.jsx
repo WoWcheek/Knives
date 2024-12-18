@@ -8,6 +8,7 @@ export const Sidebar = styled.aside`
   color: #ffffff;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
   height: auto;
   border-radius: 0 8px 8px 0;
 `;

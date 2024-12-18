@@ -60,7 +60,7 @@ export const SearchInput = styled.input`
 
 export const KnivesGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
   margin-top: 2rem;
 `;
@@ -84,8 +84,8 @@ export const KnifeCard = styled.div`
 `;
 
 export const KnifeImage = styled.img`
-  width: 100%;
-  height: auto;
+  width: 300px;
+  height: 300px;
   border-radius: 12px;
   margin-bottom: 1rem;
 `;

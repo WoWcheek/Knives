@@ -25,10 +25,20 @@ const KnifeTableCon = () => {
     editKnifeTable,
     loading,
     stateEditUserModal,
+    setHandleMaterial,
+    setSteelType,
+    setImages,
   } = useContext(EditKnifeTableContext);
 
-  const openModal = () => setModalOpen(true);
-  const closeModal = () => setModalOpen(false);
+  const openModal = () => {
+      setHandleMaterial('wood');
+      setSteelType('stainless_steel');
+      setModalOpen(true);
+    }
+  const closeModal = () => {
+    setImages([]);
+    setModalOpen(false);
+  }
 
   return (
     <>

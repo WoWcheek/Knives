@@ -65,7 +65,7 @@ class KnifeCreateRequest(BaseModel):
 
     @validator("images", each_item=True)
     def validate_base64_images(cls, v):
-        if not isinstance(v, str) or not v.startswith("data:image/"):
+        if not isinstance(v, str) or not v.startswith("image:"):
             raise ValueError("Each image must be a valid base64-encoded string starting with 'data:image/'.")
         return v
 
@@ -149,7 +149,7 @@ knives_router = APIRouter(prefix="/knives", tags=["Knives"])
 def get_knives(
     pageNumber: int = Query(1, alias="pageNumber", ge=1),
     pageSize: int = Query(12, alias="pageSize", ge=1),
-    load_all: bool = Query(True, alias="loadAll"),
+    load_all: bool = Query(False, alias="loadAll"),
     db: Session = Depends(get_db)
 ):
     total_count = db.query(KnifeDB).count()
@@ -176,12 +176,16 @@ def get_knife(knife_id: int, db: Session = Depends(get_db)):
 
 @knives_router.post("/", response_model=KnifeResponse)
 def create_knife(knife_request: KnifeCreateRequest, db: Session = Depends(get_db)):
-    images_str = ",".join(knife_request.images)
+    cleaned_images = [image.split(':')[1] if image.startswith('image:') else image for image in knife_request.images]
+    
+    images_str = ",".join(cleaned_images)
     new_knife = KnifeDB(**knife_request.dict(exclude={"images"}), images=images_str)
+    
     db.add(new_knife)
     db.commit()
     db.refresh(new_knife)
-    new_knife.images = knife_request.images
+    
+    new_knife.images = cleaned_images
     return new_knife
 
 
@@ -190,12 +194,17 @@ def update_knife(knife_id: int, knife_request: KnifeCreateRequest, db: Session =
     knife = db.query(KnifeDB).filter(KnifeDB.id == knife_id).first()
     if not knife:
         raise HTTPException(status_code=404, detail="Knife not found.")
+    
     for key, value in knife_request.dict(exclude={"images"}).items():
         setattr(knife, key, value)
-    knife.images = ",".join(knife_request.images)
+    
+    cleaned_images = [image.split(':')[1] if image.startswith('image:') else image for image in knife_request.images]
+    knife.images = ",".join(cleaned_images)
+    
     db.commit()
     db.refresh(knife)
-    knife.images = knife_request.images
+    
+    knife.images = cleaned_images
     return knife
 
 

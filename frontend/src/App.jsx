@@ -6,6 +6,7 @@ import Layout from './components/Global/Layout/Layout';
 import LoginPage from './components/LoginPage/LoginPage';
 import AdminPanelPage from './components/AdminPanelPage/AdminPanelPage';
 import IndexPage from './components/IndexPage/IndexPage';
+import KnifePage from './components/KnifePage/KnifePage';
 
 import './index.css';
 import "react-toastify/dist/ReactToastify.css";
@@ -21,7 +22,8 @@ const App = () => {
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/admin" element={<AdminPanelPage />} />
-            <Route path="/" element={<IndexPage />}></Route>
+            <Route path="/" element={<IndexPage />} />
+            <Route path="/knife/:id" element={<KnifePage />} />
           </Routes>
 
         </Layout>
